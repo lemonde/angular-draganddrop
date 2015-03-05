@@ -1,6 +1,6 @@
 {
   "name": "angular-draganddrop",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Drag and drop directives for Angular using native HTML5 API.",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/neoziro/angular-draganddrop.git"
+    "url": "git://github.com/lemonde/angular-draganddrop.git"
   },
   "keywords": [
     "drag",
