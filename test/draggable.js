@@ -13,6 +13,7 @@ describe('Draggable directive', function () {
 
   it('should enable drag', function () {
     var element = $compile('<div draggable></div>')(scope);
+    scope.$digest();
     expect(element).to.have.attr('draggable', 'true');
   });
 
