@@ -2,7 +2,7 @@
 
 angular
 .module('draganddrop', [])
-.directive('draggable', draggableDirective)
+.directive('draggable', ['$parse', draggableDirective])
 .directive('drop', ['$parse', dropDirective]);
 
 /**
@@ -21,7 +21,7 @@ angular
      Accepts an Angular expression.
  */
 
-function draggableDirective() {
+function draggableDirective($parse) {
   return {
     restrict: 'A',
     link: function (scope, element, attrs) {
@@ -29,26 +29,52 @@ function draggableDirective() {
       var effectAllowed = attrs.effectAllowed;
       var draggableData = attrs.draggableData;
       var draggableType = attrs.draggableType;
-      var draggable = attrs.draggable === 'false' ? false : true;
 
-      // Make element draggable or not.
-      domElement.draggable = draggable;
+      var dragStartHandler = $parse(attrs.dragStart);
+      var dragEndHandler = $parse(attrs.dragEnd);
 
-      if (! draggable) return ;
+      attrs.$observe('draggable', function (draggable) {
+        domElement.draggable = draggable !== 'false';
+      });
 
-      domElement.addEventListener('dragstart', function (e) {
+      domElement.addEventListener('dragstart', dragStartListener);
+      domElement.addEventListener('dragend', dragEndListener);
+
+      scope.$on('$destroy', function () {
+        domElement.removeEventListener('dragstart', dragStartListener);
+        domElement.removeEventListener('dragend', dragEndListener);
+      });
+
+      function dragStartListener(event) {
         // Restrict drag effect.
-        e.dataTransfer.effectAllowed = effectAllowed || e.dataTransfer.effectAllowed;
+        event.dataTransfer.effectAllowed = effectAllowed || event.dataTransfer.effectAllowed;
 
         // Eval and serialize data.
         var data = scope.$eval(draggableData);
-        var jsonData =  angular.toJson(data);
+        var jsonData = angular.toJson(data);
+
+        // Call dragStartHandler
+        scope.$apply(function () {
+          dragStartHandler(scope, { $data: data, $event: event });
+        });
 
         // Set drag data and drag type.
-        e.dataTransfer.setData('json/' + draggableType, jsonData);
+        event.dataTransfer.setData('json/' + draggableType, jsonData);
 
-        e.stopPropagation();
-      });
+        event.stopPropagation();
+      }
+
+      function dragEndListener(event) {
+        // Eval and serialize data.
+        var data = scope.$eval(draggableData);
+
+        // Call dragEndHandler
+        scope.$apply(function () {
+          dragEndHandler(scope, { $data: data, $event: event });
+        });
+
+        event.stopPropagation();
+      }
     }
   };
 }
@@ -80,16 +106,17 @@ function dropDirective($parse) {
       var dragOverClass = attrs.dragOverClass;
 
       var dragOverHandler = $parse(attrs.dragOver);
+      var dragLeaveHandler = $parse(attrs.dragLeave);
       var dropHandler = $parse(attrs.drop);
 
       domElement.addEventListener('dragover', dragOverListener);
+      domElement.addEventListener('dragleave', dragLeaveListener);
       domElement.addEventListener('drop', dropListener);
-      domElement.addEventListener('dragleave', removeDragOverClass);
 
       scope.$on('$destroy', function () {
         domElement.removeEventListener('dragover', dragOverListener);
+        domElement.removeEventListener('dragleave', dragLeaveListener);
         domElement.removeEventListener('drop', dropListener);
-        domElement.removeEventListener('dragleave', removeDragOverClass);
       });
 
       function dragOverListener(event) {
@@ -101,9 +128,28 @@ function dropDirective($parse) {
         // Set up drop effect to link.
         event.dataTransfer.dropEffect = dropEffect || event.dataTransfer.dropEffect;
 
+        var data = getData(event);
+
         // Call dragOverHandler
         scope.$apply(function () {
-          dragOverHandler(scope, { $event: event });
+          dragOverHandler(scope, { $data: data, $event: event });
+        });
+
+        // Prevent default to accept drag and drop.
+        event.preventDefault();
+      }
+
+      function dragLeaveListener(event) {
+        // Check if type is accepted.
+        if (! accepts(scope.$eval(dropAccept), event)) return true;
+
+        removeDragOverClass();
+
+        var data = getData(event);
+
+        // Call dragLeaveHandler
+        scope.$apply(function () {
+          dragLeaveHandler(scope, { $data: data, $event: event });
         });
 
         // Prevent default to accept drag and drop.
@@ -144,9 +190,20 @@ function dropDirective($parse) {
         if (typeof type === 'boolean') return type;
         if (typeof type === 'string') return accepts([type], event);
         if (Array.isArray(type)) {
-          return accepts(function (types) {
-            return types.some(function (_type) {
-              return type.indexOf(_type) !== -1;
+          return accepts(function (eventTypes) {
+            return eventTypes.some(function (eventType) {
+              eventType = eventType.split('/');
+              return type.some(function (_type) {
+                _type = _type.split('/');
+
+                var match = true;
+                eventType.forEach(function (eventTypeChunk, index) {
+                  if (_type[index] === '*') return;
+                  if (eventTypeChunk !== _type[index]) match = false;
+                });
+
+                return match;
+              });
             });
           }, event);
         }
@@ -170,13 +227,18 @@ function dropDirective($parse) {
           var data = event.dataTransfer.getData(type);
 
           // Get data format.
-          var format = /(.*)\//.exec(type);
-          format = format ? format[1] : null;
+          var format = type.split('/')[0];
 
           // Parse data.
-          if (format === 'json') data = JSON.parse(data);
+          if (format === 'json' && data) data = angular.fromJson(data);
 
           collection[type] = data;
+
+          type.split('/').reduce(function (accumulator, chunk) {
+            accumulator.push(chunk);
+            collection[accumulator.join('/')] = data;
+            return accumulator;
+          }, []);
 
           return collection;
         }, {});

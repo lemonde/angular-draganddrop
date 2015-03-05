@@ -3,7 +3,8 @@
   "version": "0.2.1",
   "homepage": "https://github.com/neoziro/angular-draganddrop",
   "authors": [
-    "Greg Bergé <neoziro@gmail.com>"
+    "Greg Bergé <neoziro@gmail.com>",
+    "Samuel Hurel <hurel@lemonde.fr>"
   ],
   "description": "Drag and drop directives for Angular using native HTML5 API.",
   "main": "angular-draganddrop.js",

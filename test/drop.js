@@ -16,7 +16,11 @@ describe('Drop directive', function () {
     sinon.spy(dragOverEvent, 'preventDefault');
     dragOverEvent.dataTransfer = {
       dropEffect: 'none',
-      types: ['json/image', 'text/uri-list']
+      types: ['json/image', 'text/uri-list'],
+      getData: function (type) {
+        if (type === 'json/image') return '{"foo":"bar"}';
+        if (type === 'text/uri-list') return 'http://dragdrop.com';
+      }
     };
 
     // "drop" event.
@@ -34,6 +38,13 @@ describe('Drop directive', function () {
     // "dragleave" event.
     var dragLeaveEvent = document.createEvent('CustomEvent');
     dragLeaveEvent.initCustomEvent('dragleave', false, false, false);
+    dragLeaveEvent.dataTransfer = {
+      types: ['json/image', 'text/uri-list'],
+      getData: function (type) {
+        if (type === 'json/image') return '{"foo":"bar"}';
+        if (type === 'text/uri-list') return 'http://dragdrop.com';
+      }
+    };
 
     dragOver = function (element) {
       element[0].dispatchEvent(dragOverEvent);
@@ -226,7 +237,9 @@ describe('Drop directive', function () {
 
       expect(scope.onDrop).to.be.calledWith({
         'json/image': {foo: 'bar'},
-        'text/uri-list': 'http://dragdrop.com'
+        'json': {foo: 'bar'},
+        'text/uri-list': 'http://dragdrop.com',
+        'text': 'http://dragdrop.com'
       }, dropEvent);
     });
   });
