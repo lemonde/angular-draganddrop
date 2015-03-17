@@ -1,5 +1,5 @@
 # angular-draganddrop
-[![Build Status](https://travis-ci.org/neoziro/angular-draganddrop.svg?branch=master)](https://travis-ci.org/neoziro/angular-draganddrop)
+[![Build Status](https://travis-ci.org/lemonde/angular-draganddrop.svg?branch=master)](https://travis-ci.org/lemonde/angular-draganddrop)
 [![Dependency Status](https://david-dm.org/neoziro/angular-draganddrop.svg?theme=shields.io)](https://david-dm.org/neoziro/angular-draganddrop)
 [![devDependency Status](https://david-dm.org/neoziro/angular-draganddrop/dev-status.svg?theme=shields.io)](https://david-dm.org/neoziro/angular-draganddrop#info=devDependencies)
 
