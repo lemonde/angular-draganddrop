@@ -122,10 +122,6 @@ function dropDirective($parse) {
       var throttledDragover = 0;
 
       function dragOverListener(event) {
-        var now = new Date().getTime();
-        if (now - throttledDragover < 200) return;
-        throttledDragover = now;
-
         // Check if type is accepted.
         if (! accepts(scope.$eval(dropAccept), event)) return true;
 
@@ -136,6 +132,10 @@ function dropDirective($parse) {
 
         // Prevent default to accept drag and drop.
         event.preventDefault();
+        
+        var now = new Date().getTime();
+        if (now - throttledDragover < 200) return;
+        throttledDragover = now;
 
         if (!attrs.dragOver) return;
 
