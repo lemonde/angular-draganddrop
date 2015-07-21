@@ -119,7 +119,13 @@ function dropDirective($parse) {
         domElement.removeEventListener('drop', dropListener);
       });
 
+      var throttledDragover = 0;
+
       function dragOverListener(event) {
+        var now = new Date().getTime();
+        if (now - throttledDragover < 200) return;
+        throttledDragover = now;
+
         // Check if type is accepted.
         if (! accepts(scope.$eval(dropAccept), event)) return true;
 
@@ -128,15 +134,17 @@ function dropDirective($parse) {
         // Set up drop effect to link.
         event.dataTransfer.dropEffect = dropEffect || event.dataTransfer.dropEffect;
 
+        // Prevent default to accept drag and drop.
+        event.preventDefault();
+
+        if (!attrs.dragOver) return;
+
         var data = getData(event);
 
         // Call dragOverHandler
         scope.$apply(function () {
           dragOverHandler(scope, { $data: data, $event: event });
         });
-
-        // Prevent default to accept drag and drop.
-        event.preventDefault();
       }
 
       function dragLeaveListener(event) {
@@ -144,6 +152,8 @@ function dropDirective($parse) {
         if (! accepts(scope.$eval(dropAccept), event)) return true;
 
         removeDragOverClass();
+
+        if (!attrs.dragLeave) return;
 
         var data = getData(event);
 
