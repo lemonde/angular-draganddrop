@@ -26,9 +26,21 @@ function draggableDirective($parse) {
     restrict: 'A',
     link: function (scope, element, attrs) {
       var domElement = element[0];
-      var effectAllowed = attrs.effectAllowed;
-      var draggableData = attrs.draggableData;
-      var draggableType = attrs.draggableType;
+      var effectAllowed;
+      var draggableData;
+      var draggableType;
+
+      attrs.$observe('effectAllowed', function (val) {
+        effectAllowed = val;
+      });
+
+      attrs.$observe('draggableData', function (val) {
+        draggableData = val;
+      });
+
+      attrs.$observe('draggableType', function (val) {
+        draggableType = val;
+      });
 
       var dragStartHandler = $parse(attrs.dragStart);
       var dragEndHandler = $parse(attrs.dragEnd);
@@ -132,7 +144,7 @@ function dropDirective($parse) {
 
         // Prevent default to accept drag and drop.
         event.preventDefault();
-        
+
         var now = new Date().getTime();
         if (now - throttledDragover < 200) return;
         throttledDragover = now;
