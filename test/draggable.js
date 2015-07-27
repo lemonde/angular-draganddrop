@@ -42,10 +42,26 @@ describe('Draggable directive', function () {
       'draggable-data="{foo: \'bar\'}" draggable-type="image"></div>';
       var element = $compile(tpl)(scope);
 
+      scope.$digest();
       startDrag(element);
 
       expect(dragEvent.dataTransfer.effectAllowed).to.equal('link');
       expect(dragEvent.dataTransfer.setData).to.be.calledWith('json/image', '{"foo":"bar"}');
+    });
+
+    it('should listen for data changes', function () {
+      var tpl = '<div draggable="true" effect-allowed="link" ' +
+      'draggable-data="dragData" draggable-type="image"></div>';
+
+      scope.dragData = {foo: 'bar'};
+      var element = $compile(tpl)(scope);
+
+      scope.dragData = { bar: 'baz'};
+      scope.$digest();
+      startDrag(element);
+
+      expect(dragEvent.dataTransfer.effectAllowed).to.equal('link');
+      expect(dragEvent.dataTransfer.setData).to.be.calledWith('json/image', '{"bar":"baz"}');
     });
 
     it('should prevent bubbling', function() {
