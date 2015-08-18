@@ -82,6 +82,7 @@ Parameters :
 - "effect-allowed" Allowed effects for the dragged element, see https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer#effectAllowed.28.29. Accepts a string.
 - "draggable-type" Type of data object attached to the dragged element, this type is prefixed by "json/". Accepts a string.
 - "draggable-data" Data attached to the dragged element, data are serialized in JSON. Accepts an Angular expression.
+- "dragging-class" Class set during the drag. Accepts a string.
 - "drag-start" (optional) an Angular expression to be evaluated on drag start ("dragstart" event).
 - "drag-end" (optional) an Angular expression to be evaluated on drag end ("dragend" event).
 

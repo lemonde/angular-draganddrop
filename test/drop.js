@@ -2,7 +2,7 @@
 
 var expect = chai.expect;
 
-describe.only('Drop directive', function () {
+describe('Drop directive', function () {
   var $compile, $rootScope, $scope, element;
   var dragOverEvent, dropEvent, dragEnterEvent, dragLeaveEvent;
 

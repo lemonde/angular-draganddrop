@@ -136,6 +136,29 @@ describe('Draggable directive', function () {
     });
   });
 
+  describe('dragging class', function() {
+    beforeEach(function() {
+      var tpl = '<div draggable ' +
+        'draggable-type="image" draggable-data="{foo: \'bar\'}" dragging-class="foo"></div>';
+      createElement(tpl);
+    });
+
+    it('should be added on dragstart', function() {
+      expect(element).to.not.have.class('foo');
+
+      dispatchEvent(element, testDragStartEvent);
+
+      expect(element).to.have.class('foo');
+    });
+
+    it('should be removed on dragend', function() {
+      dispatchEvent(element, testDragStartEvent);
+      dispatchEvent(element, testDragEndEvent);
+
+      expect(element).to.not.have.class('foo');
+    });
+  });
+
   describe('handlers', function() {
 
     describe('dragstart', function() {
