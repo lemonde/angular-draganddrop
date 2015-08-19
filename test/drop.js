@@ -19,9 +19,9 @@ describe('Drop directive', function () {
     var dragDataStore = {
       // pre-filled with test data
       'json/image': {foo: 'bar'},
-      //'json': {foo: 'bar'},
+      'json': {foo: 'bar'},
       'text/uri-list': 'http://dragdrop.com',
-      //'text': 'http://dragdrop.com'*/
+      'text': 'http://dragdrop.com'
     };
 
     // "dragover" event.
@@ -314,7 +314,13 @@ describe('Drop directive', function () {
   });
 
   describe('throttling', function() {
-    it('should limit the calls to the drag-over callback');
+    // https://github.com/lemonde/angular-draganddrop/issues/2
+    it.skip('should limit the calls to the drag-over callback');
+  });
+
+  describe('automatic handling of HTML5 API quirks', function() {
+    // https://github.com/lemonde/angular-draganddrop/issues/2
+    it.skip('should call preventDefault() on selected events');
   });
 
 });

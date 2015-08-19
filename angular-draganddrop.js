@@ -4,7 +4,8 @@ angular
 .directive('drop', ['$parse', dropDirective]);
 
 
-// for developers
+// log hooks for developers
+// @see https://github.com/lemonde/angular-draganddrop/wiki#possible-implementations-of-debug-hooks-
 function debugDraggable(scope) {}
 function debugDroppable(scope) {}
 
@@ -29,6 +30,8 @@ function debugDroppable(scope) {}
  */
 
 function draggableDirective($parse) {
+  'use strict';
+
   return {
     restrict: 'A',
     link: function (scope, element, attrs) {
@@ -145,6 +148,8 @@ function draggableDirective($parse) {
  */
 
 function dropDirective($parse) {
+  'use strict';
+
   return {
     restrict: 'A',
     link: function (scope, element, attrs) {
@@ -183,14 +188,15 @@ function dropDirective($parse) {
           return true;
         }
 
-        // Set up drop effect to link.
-        event.dataTransfer.dropEffect = dropEffect || event.dataTransfer.dropEffect;
-
         // Prevent default to accept drag and drop.
         event.preventDefault();
 
+        // Set up drop effect to link.
+        event.dataTransfer.dropEffect = dropEffect || event.dataTransfer.dropEffect;
+
         if (dragOverClass) element.addClass(dragOverClass);
 
+        // throttling to avoid loading CPU
         var now = new Date().getTime();
         if (now - throttledDragover < 200) {
           debugDroppable(scope, 'dragover throttled');
@@ -198,14 +204,10 @@ function dropDirective($parse) {
         }
         throttledDragover = now;
 
-        if (! attrs.dragOver) {
-          debugDroppable(scope, 'no dragover callback');
-          return;
-        }
-
-        var data = getData(event);
+        if (! attrs.dragOver) return;
 
         // Call custom handler
+        var data = getData(event);
         scope.$apply(function () {
           debugDroppable(scope, 'dragover callback !');
           dragOverHandler(scope, { $data: data, $event: event });
@@ -221,11 +223,12 @@ function dropDirective($parse) {
         // Prevent default to accept drag and drop.
         event.preventDefault();
 
+        if (dragOverClass) element.addClass(dragOverClass);
+
         if (! attrs.dragEnter) return;
 
-        var data = getData(event);
-
         // Call custom handler
+        var data = getData(event);
         scope.$apply(function () {
           dragEnterHandler(scope, { $data: data, $event: event });
         });
@@ -240,13 +243,12 @@ function dropDirective($parse) {
         // Prevent default to accept drag and drop.
         event.preventDefault();
 
-        removeDragOverClass();
+        element.removeClass(dragOverClass);
 
         if (! attrs.dragLeave) return;
 
-        var data = getData(event);
-
         // Call custom handler
+        var data = getData(event);
         scope.$apply(function () {
           dragLeaveHandler(scope, { $data: data, $event: event });
         });
@@ -255,25 +257,16 @@ function dropDirective($parse) {
       function dropListener(event) {
         debugDroppable(scope, 'drop');
 
-        var data = getData(event);
+        // Prevent default navigator behaviour.
+        event.preventDefault();
 
-        removeDragOverClass();
+        element.removeClass(dragOverClass);
 
         // Call custom handler
+        var data = getData(event);
         scope.$apply(function () {
           dropHandler(scope, { $data: data, $event: event });
         });
-
-        // Prevent default navigator behaviour.
-        event.preventDefault();
-      }
-
-      /**
-       * Remove the drag over class.
-       */
-
-      function removeDragOverClass() {
-        element.removeClass(dragOverClass);
       }
 
       /**

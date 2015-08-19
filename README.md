@@ -7,14 +7,20 @@ Drag and drop directives for Angular using native HTML5 API.
 
 
 ## introduction
-This module defines 2 directives :
+
+This module is a simple Angular wrapping of the native HTML5 drag & drop API + a few common utilities.
+Callbacks are invoked in Angular context.
+
+It defines 2 directives :
 * "draggable" for a draggable element
 * "drop" for a drop zone
-It handles data type control.
+It handles data type control, adding a CSS class on drag and on hover and takes care of one HTML5 quirk.
 
-Note HTML5 drag&drop is not trivial. Recommended reads :
-* http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html
-* https://html.spec.whatwg.org/multipage/interaction.html#dnd
+**CAUTION** The HTML5 drag&drop API is NOT trivial.
+* If you know it and want to use it, proceed with this package
+* If you don't know it, consider using a 3rd-party re-implementation : http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html
+* Reference doc for drag&drop API :
+ * https://html.spec.whatwg.org/multipage/interaction.html#dnd
 
 
 ## Install
@@ -31,9 +37,11 @@ bower install angular-draganddrop
 npm install angular-draganddrop
 ```
 
+
 ## Usage
 
-HTML :
+1. read the warning in introduction (really)
+2. HTML :
 
 ```html
 <!-- Load files. -->
@@ -51,7 +59,7 @@ HTML :
 </div>
 ```
 
-JavaScript :
+3. JavaScript :
 
 ```js
 angular.module('controllers.dragDrop', ['draganddrop'])
@@ -105,7 +113,7 @@ Parameters :
 - "drag-leave" (optional) an Angular expression to be evaluated on drag leave ("dragleave" event).
 - "drop" (optional) an Angular expression to be evaluated on drag over ("drop" event).
 
-Handlers are : `(scope, { $data: data, $event: event })`
+Handlers are called with : `(data, event)`
 
 
 ## Browsers support
