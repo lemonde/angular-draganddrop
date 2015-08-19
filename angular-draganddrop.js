@@ -1,9 +1,14 @@
-/*! Angular draganddrop v0.2.1 | (c) 2013 Greg Bergé | License MIT */
-
 angular
 .module('draganddrop', [])
 .directive('draggable', ['$parse', draggableDirective])
 .directive('drop', ['$parse', dropDirective]);
+
+
+// log hooks for developers
+// @see https://github.com/lemonde/angular-draganddrop/wiki#possible-implementations-of-debug-hooks-
+function debugDraggable(scope) {}
+function debugDroppable(scope) {}
+
 
 /**
  * Draggable directive.
@@ -19,68 +24,102 @@ angular
      is prefixed by "json/". Accepts a string.
  * - "draggable-data" Data attached to the dragged element, data are serialized in JSON.
      Accepts an Angular expression.
+ * - "dragging-class"
+ * - "drag-start"
+ * - "drag-end"
  */
 
 function draggableDirective($parse) {
+  'use strict';
+
   return {
     restrict: 'A',
     link: function (scope, element, attrs) {
+      debugDraggable(scope, 'init');
+
       var domElement = element[0];
       var effectAllowed;
       var draggableData;
       var draggableType;
+      var draggingClass = attrs.draggingClass;
 
       attrs.$observe('effectAllowed', function (val) {
+        debugDraggable(scope, 'observed effectAllowed change');
         effectAllowed = val;
       });
 
       attrs.$observe('draggableData', function (val) {
+        debugDraggable(scope, 'observed draggableData change');
         draggableData = val;
       });
 
       attrs.$observe('draggableType', function (val) {
+        debugDraggable(scope, 'observed draggableType change');
         draggableType = val;
+      });
+
+      attrs.$observe('draggable', function (draggable) {
+        debugDraggable(scope, 'observed draggable change');
+        domElement.draggable = (draggable !== 'false');
       });
 
       var dragStartHandler = $parse(attrs.dragStart);
       var dragEndHandler = $parse(attrs.dragEnd);
 
-      attrs.$observe('draggable', function (draggable) {
-        domElement.draggable = draggable !== 'false';
-      });
-
       domElement.addEventListener('dragstart', dragStartListener);
       domElement.addEventListener('dragend', dragEndListener);
 
       scope.$on('$destroy', function () {
+        debugDraggable(scope, '$destroy');
         domElement.removeEventListener('dragstart', dragStartListener);
         domElement.removeEventListener('dragend', dragEndListener);
       });
 
+      // Convenience function to help the directive user.
+      // AngularJS default error is unclear.
+      function safeDraggableDataEval() {
+        try {
+          return scope.$eval(draggableData);
+        }
+        catch(e) {
+          // throw a clearer error
+          throw new Error('draggable-data can\'t be parsed by Angular : ' +
+              'check your draggable directive invocation !');
+        }
+      }
+
       function dragStartListener(event) {
+        debugDraggable(scope, 'dragstart');
+
         // Restrict drag effect.
         event.dataTransfer.effectAllowed = effectAllowed || event.dataTransfer.effectAllowed;
 
-        // Eval and serialize data.
-        var data = scope.$eval(draggableData);
-        var jsonData = angular.toJson(data);
+        if (draggingClass) element.addClass(draggingClass);
 
-        // Call dragStartHandler
-        scope.$apply(function () {
-          dragStartHandler(scope, { $data: data, $event: event });
-        });
+        // Eval and serialize data.
+        var data = safeDraggableDataEval();
+        var jsonData = angular.toJson(data);
 
         // Set drag data and drag type.
         event.dataTransfer.setData('json/' + draggableType, jsonData);
+
+        // Call custom handler
+        scope.$apply(function () {
+          dragStartHandler(scope, { $data: data, $event: event });
+        });
 
         event.stopPropagation();
       }
 
       function dragEndListener(event) {
-        // Eval and serialize data.
-        var data = scope.$eval(draggableData);
+        debugDraggable(scope, 'dragend');
 
-        // Call dragEndHandler
+        element.removeClass(draggingClass);
+
+        // Eval and serialize data.
+        var data = safeDraggableDataEval();
+
+        // Call custom handler
         scope.$apply(function () {
           dragEndHandler(scope, { $data: data, $event: event });
         });
@@ -109,24 +148,31 @@ function draggableDirective($parse) {
  */
 
 function dropDirective($parse) {
+  'use strict';
+
   return {
     restrict: 'A',
     link: function (scope, element, attrs) {
+      debugDroppable(scope, 'init');
+
       var domElement = element[0];
       var dropEffect = attrs.dropEffect;
       var dropAccept = attrs.dropAccept;
       var dragOverClass = attrs.dragOverClass;
 
       var dragOverHandler = $parse(attrs.dragOver);
+      var dragEnterHandler = $parse(attrs.dragEnter);
       var dragLeaveHandler = $parse(attrs.dragLeave);
       var dropHandler = $parse(attrs.drop);
 
       domElement.addEventListener('dragover', dragOverListener);
+      domElement.addEventListener('dragenter', dragEnterListener);
       domElement.addEventListener('dragleave', dragLeaveListener);
       domElement.addEventListener('drop', dropListener);
 
       scope.$on('$destroy', function () {
         domElement.removeEventListener('dragover', dragOverListener);
+        domElement.removeEventListener('dragenter', dragEnterListener);
         domElement.removeEventListener('dragleave', dragLeaveListener);
         domElement.removeEventListener('drop', dropListener);
       });
@@ -134,70 +180,93 @@ function dropDirective($parse) {
       var throttledDragover = 0;
 
       function dragOverListener(event) {
-        // Check if type is accepted.
-        if (! accepts(scope.$eval(dropAccept), event)) return true;
+        debugDroppable(scope, 'dragover');
 
-        if (dragOverClass) element.addClass(dragOverClass);
+        // Check if type is accepted.
+        if (! accepts(scope.$eval(dropAccept), event)) {
+          debugDroppable(scope, 'dragover rejected, draggable type not accepted');
+          return true;
+        }
+
+        // Prevent default to accept drag and drop.
+        event.preventDefault();
 
         // Set up drop effect to link.
         event.dataTransfer.dropEffect = dropEffect || event.dataTransfer.dropEffect;
 
-        // Prevent default to accept drag and drop.
-        event.preventDefault();
+        if (dragOverClass) element.addClass(dragOverClass);
 
+        // throttling to avoid loading CPU
         var now = new Date().getTime();
-        if (now - throttledDragover < 200) return;
+        if (now - throttledDragover < 200) {
+          debugDroppable(scope, 'dragover throttled');
+          return;
+        }
         throttledDragover = now;
 
-        if (!attrs.dragOver) return;
+        if (! attrs.dragOver) return;
 
+        // Call custom handler
         var data = getData(event);
-
-        // Call dragOverHandler
         scope.$apply(function () {
+          debugDroppable(scope, 'dragover callback !');
           dragOverHandler(scope, { $data: data, $event: event });
         });
       }
 
-      function dragLeaveListener(event) {
+      function dragEnterListener(event) {
+        debugDroppable(scope, 'dragenter');
+
         // Check if type is accepted.
         if (! accepts(scope.$eval(dropAccept), event)) return true;
 
-        removeDragOverClass();
+        // Prevent default to accept drag and drop.
+        event.preventDefault();
 
-        if (!attrs.dragLeave) return;
+        if (dragOverClass) element.addClass(dragOverClass);
 
+        if (! attrs.dragEnter) return;
+
+        // Call custom handler
         var data = getData(event);
-
-        // Call dragLeaveHandler
         scope.$apply(function () {
-          dragLeaveHandler(scope, { $data: data, $event: event });
+          dragEnterHandler(scope, { $data: data, $event: event });
         });
+      }
+
+      function dragLeaveListener(event) {
+        debugDroppable(scope, 'dragleave');
+
+        // Check if type is accepted.
+        if (! accepts(scope.$eval(dropAccept), event)) return true;
 
         // Prevent default to accept drag and drop.
         event.preventDefault();
+
+        element.removeClass(dragOverClass);
+
+        if (! attrs.dragLeave) return;
+
+        // Call custom handler
+        var data = getData(event);
+        scope.$apply(function () {
+          dragLeaveHandler(scope, { $data: data, $event: event });
+        });
       }
 
       function dropListener(event) {
-        var data = getData(event);
-
-        removeDragOverClass();
-
-        // Call dropHandler
-        scope.$apply(function () {
-          dropHandler(scope, { $data: data, $event: event });
-        });
+        debugDroppable(scope, 'drop');
 
         // Prevent default navigator behaviour.
         event.preventDefault();
-      }
 
-      /**
-       * Remove the drag over class.
-       */
-
-      function removeDragOverClass() {
         element.removeClass(dragOverClass);
+
+        // Call custom handler
+        var data = getData(event);
+        scope.$apply(function () {
+          dropHandler(scope, { $data: data, $event: event });
+        });
       }
 
       /**
