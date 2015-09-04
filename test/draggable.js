@@ -160,36 +160,71 @@ describe('Draggable directive', function () {
   });
 
   describe('handlers', function() {
+    var digestWasInProgress;
+    beforeEach(function() {
+      digestWasInProgress = undefined;
+      $scope.onEvent = sinon.spy(function () {
+        digestWasInProgress = !!$scope.$$phase;
+      });
+    });
 
-    describe('dragstart', function() {
+    describe('"drag-start-raw"', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
         var tpl = '<div draggable ' +
           'draggable-type="image" draggable-data="{foo: \'bar\'}" ' +
-          'drag-start="onDrag($event, $data)"></div>';
+          'drag-start-raw="onEvent($event, $data)"></div>';
         createElement(tpl);
 
         dispatchEvent(element, testDragStartEvent);
       });
 
       it('should be called on dragstart when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(testDragStartEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal({
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(testDragStartEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal({
           foo: 'bar'
         });
       });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
+      });
     });
 
-    describe('dragend', function() {
+    describe('"drag-start', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
         var tpl = '<div draggable ' +
           'draggable-type="image" draggable-data="{foo: \'bar\'}" ' +
-          'drag-end="onDrag($event, $data)"></div>';
+          'drag-start="onEvent($event, $data)"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, testDragStartEvent);
+      });
+
+      it('should be called on dragstart when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(testDragStartEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal({
+          foo: 'bar'
+        });
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
+      });
+    });
+
+    describe('"drag-end-raw"', function() {
+      beforeEach(function() {
+        var tpl = '<div draggable ' +
+          'draggable-type="image" draggable-data="{foo: \'bar\'}" ' +
+          'drag-end-raw="onEvent($event, $data)"></div>';
         createElement(tpl);
 
         dispatchEvent(element, testDragStartEvent);
@@ -197,14 +232,45 @@ describe('Draggable directive', function () {
       });
 
       it('should be called on dragend when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(testDragEndEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal({
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(testDragEndEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal({
           foo: 'bar'
         });
+      });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
+      });
+    });
+
+    describe('"drag-end"', function() {
+      beforeEach(function() {
+        var tpl = '<div draggable ' +
+          'draggable-type="image" draggable-data="{foo: \'bar\'}" ' +
+          'drag-end="onEvent($event, $data)"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, testDragStartEvent);
+        dispatchEvent(element, testDragEndEvent);
+      });
+
+      it('should be called on dragend when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(testDragEndEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal({
+          foo: 'bar'
+        });
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
       });
     });
   });
