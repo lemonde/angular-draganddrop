@@ -1,6 +1,6 @@
 {
   "name": "angular-draganddrop",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Drag and drop directives for Angular using native HTML5 API.",
   "main": "index.js",
   "scripts": {
