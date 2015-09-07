@@ -229,97 +229,205 @@ describe('Drop directive', function () {
   });
 
   describe('handlers', function() {
-    var expectedData = {
-      'json/image': {foo: 'bar'},
-      'json': {foo: 'bar'},
-      'text/uri-list': 'http://dragdrop.com',
-      'text': 'http://dragdrop.com'
-    };
+    var expectedData;
+    var digestWasInProgress;
+    beforeEach(function() {
+      expectedData = {
+        'json/image': {foo: 'bar'},
+        'json': {foo: 'bar'},
+        'text/uri-list': 'http://dragdrop.com',
+        'text': 'http://dragdrop.com'
+      };
+      digestWasInProgress = undefined;
+      $scope.onEvent = sinon.spy(function () {
+        digestWasInProgress = !!$scope.$$phase;
+      });
+    });
 
-    describe('"drag-enter"', function() {
+    describe('"drag-enter-raw"', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
-        var tpl = '<div drop drop-accept="true" drag-enter="onDrag($event, $data)"></div>';
+        var tpl = '<div drop drop-accept="true" drag-enter-raw="onEvent($event, $data)"></div>';
         createElement(tpl);
 
         dispatchEvent(element, dragEnterEvent);
       });
 
       it('should be called on dragenter when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(dragEnterEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal(expectedData);
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragEnterEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
       });
     });
 
-    describe('"drag-leave"', function() {
+    describe('"drag-enter"', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
-        var tpl = '<div drop drop-accept="true" drag-leave="onDrag($event, $data)"></div>';
+        var tpl = '<div drop drop-accept="true" drag-enter="onEvent($event, $data)"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, dragEnterEvent);
+      });
+
+      it('should be called on dragenter when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragEnterEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
+      });
+    });
+
+    describe('"drag-leave-raw"', function() {
+      beforeEach(function() {
+        var tpl = '<div drop drop-accept="true" drag-leave-raw="onEvent($event, $data)"></div>';
         createElement(tpl);
 
         dispatchEvent(element, dragLeaveEvent);
       });
 
       it('should be called on dragleave when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(dragLeaveEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal(expectedData);
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragLeaveEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
       });
     });
 
-    describe('"drag-over"', function() {
+    describe('"drag-leave"', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
-        var tpl = '<div drop drop-accept="true" drag-over="onDrag($event, $data)"></div>';
+        var tpl = '<div drop drop-accept="true" drag-leave="onEvent($event, $data)"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, dragLeaveEvent);
+      });
+
+      it('should be called on dragleave when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragLeaveEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
+      });
+    });
+
+    describe('"drag-over-raw"', function() {
+      beforeEach(function() {
+        var tpl = '<div drop drop-accept="true" drag-over-raw="onEvent($event, $data)"></div>';
         createElement(tpl);
 
         dispatchEvent(element, dragOverEvent);
       });
 
       it('should be called on dragover when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(dragOverEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal(expectedData);
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragOverEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
       });
     });
 
-    describe('"drop"', function() {
+    describe('"drag-over"', function() {
       beforeEach(function() {
-        $scope.onDrag = sinon.spy();
-        var tpl = '<div drop="onDrag($event, $data)" drop-accept="true"></div>';
+        var tpl = '<div drop drop-accept="true" drag-over="onEvent($event, $data)"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, dragOverEvent);
+      });
+
+      it('should be called on dragover when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dragOverEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
+      });
+    });
+
+    describe('"drop-raw"', function() {
+      beforeEach(function() {
+        var tpl = '<div drop drop-raw="onEvent($event, $data)" drop-accept="true"></div>';
         createElement(tpl);
 
         dispatchEvent(element, dropEvent);
       });
 
       it('should be called on drop when present', function() {
-        expect($scope.onDrag).to.have.been.calledOnce;
+        expect($scope.onEvent).to.have.been.calledOnce;
       });
 
       it('should provide correct $event and $data', function() {
-        expect($scope.onDrag.firstCall.args[0], '$event').to.equal(dropEvent);
-        expect($scope.onDrag.firstCall.args[1], '$data').to.deep.equal(expectedData);
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dropEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should NOT be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.false;
+      });
+    });
+
+    describe('"drop"', function() {
+      beforeEach(function() {
+        var tpl = '<div drop="onEvent($event, $data)" drop-accept="true"></div>';
+        createElement(tpl);
+
+        dispatchEvent(element, dropEvent);
+      });
+
+      it('should be called on drop when present', function() {
+        expect($scope.onEvent).to.have.been.calledOnce;
+      });
+
+      it('should provide correct $event and $data', function() {
+        expect($scope.onEvent.firstCall.args[0], '$event').to.equal(dropEvent);
+        expect($scope.onEvent.firstCall.args[1], '$data').to.deep.equal(expectedData);
+      });
+
+      it('should be called in an Angular $apply context', function() {
+        expect(digestWasInProgress).to.be.true;
       });
     });
   });
 
   describe('throttling', function() {
-    // https://github.com/lemonde/angular-draganddrop/issues/2
+    // TODO https://github.com/lemonde/angular-draganddrop/issues/2
     it.skip('should limit the calls to the drag-over callback');
   });
 
   describe('automatic handling of HTML5 API quirks', function() {
-    // https://github.com/lemonde/angular-draganddrop/issues/2
+    // TODO https://github.com/lemonde/angular-draganddrop/issues/2
     it.skip('should call preventDefault() on selected events');
   });
 

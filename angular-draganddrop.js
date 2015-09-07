@@ -66,6 +66,9 @@ function draggableDirective($parse) {
       var dragStartHandler = $parse(attrs.dragStart);
       var dragEndHandler = $parse(attrs.dragEnd);
 
+      var rawDragStartHandler = $parse(attrs.dragStartRaw);
+      var rawDragEndHandler = $parse(attrs.dragEndRaw);
+
       domElement.addEventListener('dragstart', dragStartListener);
       domElement.addEventListener('dragend', dragEndListener);
 
@@ -103,10 +106,15 @@ function draggableDirective($parse) {
         // Set drag data and drag type.
         event.dataTransfer.setData('json/' + draggableType, jsonData);
 
-        // Call custom handler
-        scope.$apply(function () {
-          dragStartHandler(scope, { $data: data, $event: event });
-        });
+        // Call custom handlers
+        if (attrs.dragStartRaw) {
+          rawDragStartHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.dragStart) {
+          scope.$apply(function () {
+            dragStartHandler(scope, { $data: data, $event: event });
+          });
+        }
 
         event.stopPropagation();
       }
@@ -119,10 +127,15 @@ function draggableDirective($parse) {
         // Eval and serialize data.
         var data = safeDraggableDataEval();
 
-        // Call custom handler
-        scope.$apply(function () {
-          dragEndHandler(scope, { $data: data, $event: event });
-        });
+        // Call custom handlers
+        if (attrs.dragEndRaw) {
+          rawDragEndHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.dragEnd) {
+          scope.$apply(function () {
+            dragEndHandler(scope, { $data: data, $event: event });
+          });
+        }
 
         event.stopPropagation();
       }
@@ -165,6 +178,11 @@ function dropDirective($parse) {
       var dragLeaveHandler = $parse(attrs.dragLeave);
       var dropHandler = $parse(attrs.drop);
 
+      var rawDragOverHandler = $parse(attrs.dragOverRaw);
+      var rawDragEnterHandler = $parse(attrs.dragEnterRaw);
+      var rawDragLeaveHandler = $parse(attrs.dragLeaveRaw);
+      var rawDropHandler = $parse(attrs.dropRaw);
+
       domElement.addEventListener('dragover', dragOverListener);
       domElement.addEventListener('dragenter', dragEnterListener);
       domElement.addEventListener('dragleave', dragLeaveListener);
@@ -204,14 +222,18 @@ function dropDirective($parse) {
         }
         throttledDragover = now;
 
-        if (! attrs.dragOver) return;
-
-        // Call custom handler
+        // Call custom handlers
         var data = getData(event);
-        scope.$apply(function () {
-          debugDroppable(scope, 'dragover callback !');
-          dragOverHandler(scope, { $data: data, $event: event });
-        });
+        if (attrs.dragOverRaw) {
+          debugDroppable(scope, 'raw dragover callback !');
+          rawDragOverHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.dragOver) {
+          scope.$apply(function () {
+            debugDroppable(scope, 'dragover callback !');
+            dragOverHandler(scope, { $data: data, $event: event });
+          });
+        }
       }
 
       function dragEnterListener(event) {
@@ -225,13 +247,18 @@ function dropDirective($parse) {
 
         if (dragOverClass) element.addClass(dragOverClass);
 
-        if (! attrs.dragEnter) return;
-
-        // Call custom handler
+        // Call custom handlers
         var data = getData(event);
-        scope.$apply(function () {
-          dragEnterHandler(scope, { $data: data, $event: event });
-        });
+        if (attrs.dragEnterRaw) {
+          debugDroppable(scope, 'raw dragenter callback !');
+          rawDragEnterHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.dragEnter) {
+          scope.$apply(function () {
+            debugDroppable(scope, 'dragenter callback !');
+            dragEnterHandler(scope, { $data: data, $event: event });
+          });
+        }
       }
 
       function dragLeaveListener(event) {
@@ -245,13 +272,18 @@ function dropDirective($parse) {
 
         element.removeClass(dragOverClass);
 
-        if (! attrs.dragLeave) return;
-
-        // Call custom handler
+        // Call custom handlers
         var data = getData(event);
-        scope.$apply(function () {
-          dragLeaveHandler(scope, { $data: data, $event: event });
-        });
+        if (attrs.dragLeaveRaw) {
+          debugDroppable(scope, 'raw dragleave callback !');
+          rawDragLeaveHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.dragLeave) {
+          scope.$apply(function () {
+            debugDroppable(scope, 'dragleave callback !');
+            dragLeaveHandler(scope, { $data: data, $event: event });
+          });
+        }
       }
 
       function dropListener(event) {
@@ -262,11 +294,18 @@ function dropDirective($parse) {
 
         element.removeClass(dragOverClass);
 
-        // Call custom handler
+        // Call custom handlers
         var data = getData(event);
-        scope.$apply(function () {
-          dropHandler(scope, { $data: data, $event: event });
-        });
+        if (attrs.dropRaw) {
+          debugDroppable(scope, 'raw drop callback !');
+          rawDropHandler(scope, { $data: data, $event: event });
+        }
+        if (attrs.drop) {
+          scope.$apply(function () {
+            debugDroppable(scope, 'drop callback !');
+            dropHandler(scope, { $data: data, $event: event });
+          });
+        }
       }
 
       /**
