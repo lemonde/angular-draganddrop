@@ -28,13 +28,7 @@ It handles data type control, adding a CSS class on drag and on hover and takes 
 ### Using bower
 
 ```sh
-bower install angular-draganddrop
-```
-
-### Using npm
-
-```sh
-npm install angular-draganddrop
+bower install git://github.com/lemonde/angular-draganddrop
 ```
 
 
@@ -43,45 +37,44 @@ npm install angular-draganddrop
 1. read the warning in introduction (really)
 2. HTML :
 
-```html
-<!-- Load files. -->
-<script src="angular.js"></script>
-<script src="angular-draganddrop.js"></script>
-
-<div ng-controller="DragDropCtrl">
-
-  <!-- Draggable element. -->
-  <div draggable="true" effect-allowed="copy" draggable-type="custom-object" draggable-data="{foo: 'bar'}"></div>
-
-  <!-- Dropzone element. -->
-  <div drop="onDrop($data, $event)" drop-effect="copy" drop-accept="'json/custom-object'" drag-over="onDragOver($event)" drag-over-class="drag-over-accept"></div>
-
-</div>
-```
-
+  ```html
+  <!-- Load files. -->
+  <script src="angular.js"></script>
+  <script src="angular-draganddrop.js"></script>
+  
+  <div ng-controller="DragDropCtrl">
+  
+    <!-- Draggable element. -->
+    <div draggable="true" effect-allowed="copy" draggable-type="custom-object" draggable-data="{foo: 'bar'}"></div>
+  
+    <!-- Dropzone element. -->
+    <div drop="onDrop($data, $event)" drop-effect="copy" drop-accept="'json/custom-object'" drag-over="onDragOver($event)" drag-over-class="drag-over-accept"></div>
+  
+  </div>
+  ```
 3. JavaScript :
 
-```js
-angular.module('controllers.dragDrop', ['draganddrop'])
-.controller('DragDropCtrl', function ($scope) {
-
-  // Drop handler.
-  $scope.onDrop = function (data, event) {
-    // Get custom object data.
-    var customObjectData = data['json/custom-object']; // {foo: 'bar'}
-
-    // Get other attached data.
-    var uriList = data['text/uri-list']; // http://mywebsite.com/..
-
-    // ...
-  };
-
-  // Drag over handler.
-  $scope.onDragOver = function (event) {
-    // ...
-  };
-});
-```
+  ```js
+  angular.module('controllers.dragDrop', ['draganddrop'])
+  .controller('DragDropCtrl', function ($scope) {
+  
+    // Drop handler.
+    $scope.onDrop = function (data, event) {
+      // Get custom object data.
+      var customObjectData = data['json/custom-object']; // {foo: 'bar'}
+  
+      // Get other attached data.
+      var uriList = data['text/uri-list']; // http://mywebsite.com/..
+  
+      // ...
+    };
+  
+    // Drag over handler.
+    $scope.onDragOver = function (event) {
+      // ...
+    };
+  });
+  ```
 
 ### "draggable" directive
 
@@ -93,6 +86,7 @@ Parameters :
 - "dragging-class" Class set during the drag. Accepts a string.
 - "drag-start" (optional) an Angular expression to be evaluated on drag start ("dragstart" event).
 - "drag-end" (optional) an Angular expression to be evaluated on drag end ("dragend" event).
+- "drag-start-raw", "drag-end-raw" (optional) same callbacks, but called outside of $apply. Useful for calling $apply yourself for optimizations if you have an heavy Angular page (since drag&drop sends a lot of events).
 
 The draggable directive serializes data as JSON and prefix the specified type with "json/".
 
@@ -112,6 +106,7 @@ Parameters :
 - "drag-enter" (optional) an Angular expression to be evaluated on drag enter ("dragenter" event).
 - "drag-leave" (optional) an Angular expression to be evaluated on drag leave ("dragleave" event).
 - "drop" (optional) an Angular expression to be evaluated on drag over ("drop" event).
+- "drag-over-raw", "drag-enter-raw", "drag-leave-raw" , "drop-raw" (optional) same callbacks, but called outside of $apply. Useful for calling $apply yourself for optimizations if you have an heavy Angular page (since drag&drop sends a lot of events).
 
 Handlers are called with : `(data, event)`
 
