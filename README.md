@@ -117,6 +117,11 @@ Handlers are called with : `(data, event)`
 
 Tested on Firefox 24+, Chrome 31+.
 
+
+## Contributing
+Don't forget to `npm test` and `npm build`
+
+
 ## License
 
 MIT

@@ -240,7 +240,10 @@ function dropDirective($parse) {
         debugDroppable(scope, 'dragenter');
 
         // Check if type is accepted.
-        if (! accepts(scope.$eval(dropAccept), event)) return true;
+        if (! accepts(scope.$eval(dropAccept), event)) {
+          debugDroppable(scope, 'dragover rejected, draggable type not accepted');
+          return true;
+        }
 
         // Prevent default to accept drag and drop.
         event.preventDefault();
@@ -288,6 +291,9 @@ function dropDirective($parse) {
 
       function dropListener(event) {
         debugDroppable(scope, 'drop');
+
+        // Check if type is accepted.
+        if (! accepts(scope.$eval(dropAccept), event)) return true;
 
         // Prevent default navigator behaviour.
         event.preventDefault();
